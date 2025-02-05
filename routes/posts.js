@@ -2,13 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Post = require("../models/Post"); 
 
-/* POST /create: Endpoint para crear una publicación.
-GET /: Endpoint para traer todas las publicaciones.
-GET /id/:_id: Endpoint para buscar publicación por id.
-GET /title/:title: Endpoint para buscar una publicación por su titulo.
-PUT /id/:_id: Endpoint para actualizar una publicación.
-DELETE /id/:_id: Endpoint para eliminar una publicación.
- */
+//POST /create: Endpoint para crear una publicación.
 router.post("/create", async(req, res) => {
     try {
         const post = await Post.create(req.body);        
@@ -25,7 +19,7 @@ router.post("/create", async(req, res) => {
     }
 });
 
-//Buscamos todos los registro de post
+//GET /: Endpoint para traer todas las publicaciones.
 router.get("/", async(req, res) => {
     try {
         const post = await Post.find(); 
@@ -35,11 +29,31 @@ router.get("/", async(req, res) => {
         res
 
             .status(500)
-            .send({ message: "There was a problem trying to show all post " });
+            .send({ message: "There was a problem trying to show all posts " });
     }
 }); 
 
-//encontrar una tarea por id
+//sGET /postsWithPagination: Endpoint para traer todas las publicaciones de 10 en 10 (paginación)
+router.get('/postsWithPagination', async (req, res) => {
+    try {
+        const limit = 10
+        let page = 1
+        page = parseInt(req.query.page); 
+        // req query devuelve un string por lo que debemos convertirlo en numero con parseInt
+
+        const posts = await Post.find()
+            .skip((page - 1) * limit) // Saltar los documentos previos por ejemplo si estoy en la pagina 2
+            .limit(limit); // Limitar la cantidad de documentos por pagina
+
+        res.status(200).json(posts)
+    } 
+    catch (error) {
+        console.error(error);
+        res.status(500).send({ message: "There was a problem trying to show the posts" });
+    }
+});
+
+//GET /id/:_id: Endpoint para buscar publicación por id.
 router.get("/id/:_id", async(req, res) => {
     const id = req.params._id;
     try {
@@ -49,10 +63,11 @@ router.get("/id/:_id", async(req, res) => {
         console.error(error);
         res
             .status(500)
-            .send({ message: "There was a problem trying to show a user" });
+            .send({ message: "There was a problem trying to show a post" });
     }
 });
 
+//GET /title/:title: Endpoint para buscar una publicación por su titulo.
 router.get("/title/:title", async(req, res) => {
     const title = req.params.title;
     try {
@@ -66,6 +81,7 @@ router.get("/title/:title", async(req, res) => {
     }
 });
 
+//PUT /id/:_id: Endpoint para actualizar una publicación.
 router.put("/id/:_id", async(req, res) => {
     const id = req.params._id;
     const title = req.body.title;
@@ -82,7 +98,7 @@ router.put("/id/:_id", async(req, res) => {
 });
 
 
-
+//DELETE /id/:_id: Endpoint para eliminar una publicación.
 router.delete("/id/:_id", async(req, res) => {
     const id = req.params._id;
     try {
